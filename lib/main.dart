@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:intl/intl.dart';
 
 void main() {
   runApp(const MyApp());
@@ -119,6 +120,15 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  String _formatDate(String dateStr) {
+    try {
+      final DateTime dateTime = DateTime.parse(dateStr);
+      return DateFormat('yyyy-MM-dd').format(dateTime);
+    } catch (e) {
+      return dateStr;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -167,7 +177,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
               subtitle: Text(
-                'ID: ${_data[index]['id']}',
+                '마지막 업데이트: ${_formatDate(_data[index]['last_updated'])}',
                 style: TextStyle(
                   color: widget.isDarkTheme ? Colors.white70 : Colors.black87,
                 ),
