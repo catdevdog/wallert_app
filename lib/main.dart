@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 void main() {
   runApp(const MyApp());
@@ -84,6 +86,45 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  List<dynamic> _data = [];
+  bool _isLoading = true;
+  String _errorMessage = '';
+
+  // API 호출을 통해 데이터를 가져오는 메서드
+  Future<void> _fetchData() async {
+    final url = Uri.parse('https://kxx.kr:12225/api/v1/brands'); // API 서버의 URL을 입력합니다.
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        // 서버 응답이 성공적일 때 데이터 파싱
+        final Map<String, dynamic> responseData = json.decode(response.body);
+        setState(() {
+          _data = responseData['data'] ?? [];
+          _isLoading = false;
+        });
+      } else {
+        // 서버 응답이 실패했을 때
+        setState(() {
+          _errorMessage = 'Failed to load data. Please try again later.';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      // 예외 처리
+      setState(() {
+        _errorMessage = 'An error occurred while fetching data.';
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -103,13 +144,15 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(8),
-        itemCount: 10, // 카드의 수를 지정합니다.
-        itemBuilder: (BuildContext context, int index) {
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _errorMessage.isNotEmpty
+          ? Center(child: Text(_errorMessage))
+          : ListView.builder(
+        itemCount: _data.length,
+        itemBuilder: (context, index) {
           return Card(
-            margin: const EdgeInsets.symmetric(vertical: 10),
-            elevation: 5,
+            margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
             child: ListTile(
               leading: Icon(
                 Icons.account_circle,
@@ -117,14 +160,14 @@ class _MyHomePageState extends State<MyHomePage> {
                 color: widget.isDarkTheme ? Colors.white : Colors.black,
               ),
               title: Text(
-                'Card Title $index',
+                '${_data[index]['name']}',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: widget.isDarkTheme ? Colors.white : Colors.black,
                 ),
               ),
               subtitle: Text(
-                'This is the subtitle for card number $index.',
+                'ID: ${_data[index]['id']}',
                 style: TextStyle(
                   color: widget.isDarkTheme ? Colors.white70 : Colors.black87,
                 ),
@@ -136,7 +179,7 @@ class _MyHomePageState extends State<MyHomePage> {
               onTap: () {
                 // 카드 탭했을 때의 동작을 정의합니다.
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Card $index tapped!')),
+                  SnackBar(content: Text('Card ${_data[index]['name']} tapped!')),
                 );
               },
             ),
