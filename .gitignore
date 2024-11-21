@@ -1,0 +1,74 @@
+# Flutter-specific
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+
+# iOS
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
+ios/Pods/
+ios/Runner.xcworkspace/
+ios/Runner.xcodeproj/project.xcworkspace/
+ios/Runner.xcodeproj/xcuserdata/
+
+# Android
+.android/
+app/*.iml
+local.properties
+.DS_Store
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Android Studio
+.gradle/
+.idea/
+**/*.iml
+**/*.hprof
+
+# Generated
+*.log
+pubspec.lock
+.dart_tool/
+*.class
+*.jks
+*.keystore
+
+# Web related
+web/manifest.json
+web/favicon.png
+
+# macOS
+macos/Flutter/ephemeral/
+
+# Windows
+windows/flutter/ephemeral/
+
+# Linux
+linux/flutter/ephemeral/
+
+# Misc
+*.swp
+*.lock
+*.lock.json
+*.bak
+*.tmp
+*.temp
+*.swm
+*.swn
+*.swp
+
+# Firebase
+firebase_app_id_file.json
+google-services.json
