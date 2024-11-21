@@ -161,38 +161,44 @@ class _MyHomePageState extends State<MyHomePage> {
           : ListView.builder(
         itemCount: _data.length,
         itemBuilder: (context, index) {
-          return Card(
-            margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-            child: ListTile(
-              leading: Icon(
-                Icons.account_circle,
-                size: 50,
-                color: widget.isDarkTheme ? Colors.white : Colors.black,
-              ),
-              title: Text(
-                '${_data[index]['name']}',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: widget.isDarkTheme ? Colors.white : Colors.black,
+          return ExpansionTile(
+            title: Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: widget.isDarkTheme ? Colors.grey : Colors.blue,
+                  child: Icon(
+                    Icons.account_circle,
+                    color: Colors.white,
+                  ),
                 ),
-              ),
-              subtitle: Text(
-                '마지막 업데이트: ${_formatDate(_data[index]['last_updated'])}',
-                style: TextStyle(
-                  color: widget.isDarkTheme ? Colors.white70 : Colors.black87,
+                const SizedBox(width: 15),
+                Text(
+                  '${_data[index]['name']}',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: widget.isDarkTheme ? Colors.white : Colors.black,
+                  ),
                 ),
-              ),
-              trailing: Icon(
-                Icons.arrow_forward,
-                color: widget.isDarkTheme ? Colors.white : Colors.black,
-              ),
-              onTap: () {
-                // 카드 탭했을 때의 동작을 정의합니다.
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Card ${_data[index]['name']} tapped!')),
-                );
-              },
+              ],
             ),
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '마지막 업데이트: ${_formatDate(_data[index]['last_updated'])}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: widget.isDarkTheme ? Colors.white70 : Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           );
         },
       ),
