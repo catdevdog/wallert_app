@@ -79,6 +79,10 @@ class _MyAppState extends State<MyApp> {
       print('FCM 토큰 가져오기 실패: $e');
     }
 
+    // 기본적으로 사용자가 "default" 주제를 구독하게 설정
+    await messaging.subscribeToTopic("default");
+    print("Subscribed to default topic");
+
     // 포그라운드 메시지 처리
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       print('포그라운드 메시지 수신: ${message.notification?.title}');
@@ -90,6 +94,7 @@ class _MyAppState extends State<MyApp> {
       print('알림을 통해 앱 열림: ${message.notification?.title}');
     });
   }
+
 
   Future<void> _showNotification(RemoteMessage message) async {
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
