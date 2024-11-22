@@ -2,8 +2,36 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:intl/intl.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'firebase_options.dart';
 
-void main() {
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  print("백그라운드 메시지 처리: ${message.messageId}");
+}
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  // 초기화 설정
+  const AndroidInitializationSettings initializationSettingsAndroid =
+  AndroidInitializationSettings('@mipmap/ic_launcher');
+  final InitializationSettings initializationSettings = InitializationSettings(
+    android: initializationSettingsAndroid,
+  );
+  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
   runApp(const MyApp());
 }
 
@@ -21,6 +49,66 @@ class _MyAppState extends State<MyApp> {
     setState(() {
       isDarkTheme = !isDarkTheme;
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _setupFirebaseMessaging();
+  }
+
+  void _setupFirebaseMessaging() async {
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+    // 알림 권한 요청
+    NotificationSettings settings = await messaging.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
+    print('User granted permission: ${settings.authorizationStatus}');
+
+    // 토큰 가져오기
+    try {
+      String? token = await messaging.getToken();
+      if (token != null) {
+        print('FCM Registration Token: $token');
+      }
+    } catch (e) {
+      print('FCM 토큰 가져오기 실패: $e');
+    }
+
+    // 포그라운드 메시지 처리
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      print('포그라운드 메시지 수신: ${message.notification?.title}');
+      _showNotification(message);
+    });
+
+    // 앱이 백그라운드에서 실행 중일 때 알림을 탭한 경우
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      print('알림을 통해 앱 열림: ${message.notification?.title}');
+    });
+  }
+
+  Future<void> _showNotification(RemoteMessage message) async {
+    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+    AndroidNotificationDetails(
+      'high_importance_channel',
+      'High Importance Notifications',
+      channelDescription: 'This channel is used for important notifications.',
+      importance: Importance.max,
+      priority: Priority.high,
+      showWhen: true,
+    );
+    const NotificationDetails platformChannelSpecifics =
+    NotificationDetails(android: androidPlatformChannelSpecifics);
+    await flutterLocalNotificationsPlugin.show(
+      0,
+      message.notification?.title ?? 'No Title',
+      message.notification?.body ?? 'No Body',
+      platformChannelSpecifics,
+    );
   }
 
   @override
