@@ -12,14 +12,14 @@ class BrandPost {
   });
 
   factory BrandPost.fromJson(Map<String, dynamic> json) {
-    final String name = json['name'] ?? '';
+    final String brandName = json['brand_name'] ?? '';
     final String postType = json['post_type'] ?? '';
     final String imageHash = json['image_hash'] ?? '';
     final int id = json['id'] ?? 0;
 
     // 이미지 URL 구성
     final String constructedImageUrl =
-        'https://catdevdog.i234.me:12222/$name/$postType/${name}_$id\_$imageHash.jpg';
+        'https://catdevdog.i234.me:12222/$brandName/$postType/${brandName}_$id\_$imageHash.jpg';
 
     return BrandPost(
       postType: postType,
