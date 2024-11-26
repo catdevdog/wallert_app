@@ -72,3 +72,4 @@ linux/flutter/ephemeral/
 # Firebase
 firebase_app_id_file.json
 google-services.json
+.env
