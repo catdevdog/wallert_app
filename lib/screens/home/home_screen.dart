@@ -28,6 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Map<String, List<BrandPost>> _brandPosts = {};
   bool _isLoading = true; // 로딩 상태 관리
   String _errorMessage = ''; // 에러 메시지 관리
+  int _crossAxisCount = 3; // GridView의 열 개수 변수
 
   @override
   void initState() {
@@ -77,6 +78,13 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // GridView의 열 개수를 변경하는 함수
+  void _toggleGrid() {
+    setState(() {
+      _crossAxisCount = _crossAxisCount == 3 ? 2 : 3; // 3 -> 2, 2 -> 3으로 토글
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -91,9 +99,17 @@ class _HomeScreenState extends State<HomeScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(widget.title),
-          IconButton(
-            icon: Icon(widget.isDarkTheme ? Icons.wb_sunny : Icons.nights_stay),
-            onPressed: widget.toggleTheme,
+          Row(
+            children: [
+              IconButton(
+                icon: Icon(_crossAxisCount == 3 ? Icons.grid_3x3 : Icons.grid_4x4), // 그리드 아이콘
+                onPressed: _toggleGrid, // 그리드 열 변경 함수 호출
+              ),
+              IconButton(
+                icon: Icon(widget.isDarkTheme ? Icons.wb_sunny : Icons.nights_stay),
+                onPressed: widget.toggleTheme,
+              ),
+            ],
           ),
         ],
       ),
@@ -138,8 +154,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return GridView.builder(
       padding: const EdgeInsets.all(16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: _crossAxisCount, // 열 개수를 동적으로 설정
         childAspectRatio: 1,
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,

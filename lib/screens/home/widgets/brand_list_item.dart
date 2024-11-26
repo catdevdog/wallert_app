@@ -102,7 +102,7 @@ class BrandGridItem extends StatelessWidget {
             child: Text(
               brandNameKr,
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 12,
                 fontWeight: FontWeight.w500,
                 color: Colors.white,
               ),
