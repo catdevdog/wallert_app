@@ -1,11 +1,9 @@
-// lib/screens/home/home_screen.dart
-
 import 'package:flutter/material.dart';
 import '../../constants/app_constants.dart';
 import '../../models/brand_post.dart';
 import 'widgets/brand_list_item.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'widgets/image_slider_dialog.dart'; // 추가적으로 필요한 위젯 임포트
+import '../../services/api_service.dart'; // ApiService 임포트
 
 class HomeScreen extends StatefulWidget {
   final VoidCallback toggleTheme;
@@ -25,11 +23,11 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  List<dynamic> _data = [];
-  bool _isLoading = true;
-  String _errorMessage = '';
+  final ApiService _apiService = ApiService(); // ApiService 인스턴스 생성
+  List<dynamic> _brands = [];
   Map<String, List<BrandPost>> _brandPosts = {};
-  Set<String> _fetchedBrands = {};
+  bool _isLoading = true; // 로딩 상태 관리
+  String _errorMessage = ''; // 에러 메시지 관리
 
   @override
   void initState() {
@@ -37,111 +35,46 @@ class _HomeScreenState extends State<HomeScreen> {
     _fetchData();
   }
 
+  // 데이터를 가져오는 메서드
   Future<void> _fetchData() async {
-    try {
-      final response = await http.get(Uri.parse(API_URL));
-
-      print('Fetching brands from API');
-      print('Request URL: $API_URL');
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}'); // 추가된 로그
-
-      if (response.statusCode == 200) {
-        final responseData = json.decode(response.body) as Map<String, dynamic>;
-        setState(() {
-          _data = responseData['data'] ?? [];
-          _isLoading = false;
-        });
-
-        // 각 브랜드에 대해 최근 게시글을 한 번씩만 불러옵니다.
-        for (var brand in _data) {
-          final brandName = brand['name'];
-          // `days` 값을 전달하여 최근 DAYS일 내의 게시글을 가져옵니다.
-          _fetchRecentPosts(brandName);
-        }
-      } else {
-        _setError('데이터 로드 실패. 나중에 다시 시도해주세요.');
-      }
-    } catch (e) {
-      _setError('데이터를 가져오는 중 오류가 발생했습니다.');
-      print('데이터를 가져오는 중 오류 발생: $e');
-    }
-  }
-
-  /// `days`는 더 이상 함수의 파라미터가 아니므로 제거되었습니다.
-  Future<void> _fetchRecentPosts(String brandName) async {
-    if (_fetchedBrands.contains(brandName)) {
-      // 이미 호출된 브랜드이므로 다시 호출하지 않음
-      return;
-    }
-
-    _fetchedBrands.add(brandName);
-
-    // `{brand_name}`을 실제 브랜드 이름으로 대체
-    final String recentPostsUrl =
-    RECENT_POSTS_API_URL_TEMPLATE.replaceAll('{brand_name}', brandName);
-
-    // Uri 빌드
-    Uri uri = Uri.parse(recentPostsUrl);
-
-    // `days` 파라미터를 상수 DAYS로 설정
-    uri = uri.replace(
-      queryParameters: {
-        ...uri.queryParameters,
-        'days': DAYS.toString(),
-      },
-    );
-
-    try {
-      final response = await http.get(uri);
-
-      print('Fetching recent posts for brand: $brandName');
-      print('Request URL: $uri');
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}'); // 추가된 로그
-
-      if (response.statusCode == 200) {
-        final responseData = json.decode(response.body) as Map<String, dynamic>;
-        print('API 응답: $responseData'); // 추가된 로그
-
-        if (responseData['success'] == true) {
-          final data = responseData['data'];
-          if (data is List) {
-            setState(() {
-              _brandPosts[brandName] =
-                  data.map((post) => BrandPost.fromJson(post)).toList();
-            });
-          } else if (data is String) {
-            print('데이터가 리스트가 아닙니다: $data');
-            setState(() {
-              _brandPosts[brandName] = [];
-            });
-          } else {
-            print('예상치 못한 데이터 형식: ${data.runtimeType}');
-            setState(() {
-              _brandPosts[brandName] = [];
-            });
-          }
-        } else {
-          print('최근 게시글이 없습니다.');
-          setState(() {
-            _brandPosts[brandName] = [];
-          });
-        }
-      } else {
-        print(
-            '최근 게시글 데이터를 가져오는 중 HTTP 오류 발생. 상태 코드: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('최근 게시글 데이터를 가져오는 중 오류 발생: $e');
-    }
-  }
-
-  void _setError(String message) {
     setState(() {
-      _errorMessage = message;
-      _isLoading = false;
+      _isLoading = true;
+      _errorMessage = '';
     });
+
+    try {
+      // 브랜드 목록 가져오기
+      final brands = await _apiService.fetchBrands();
+      setState(() {
+        _brands = brands;
+      });
+
+      // 각 브랜드의 최근 게시물 가져오기
+      for (var brand in brands) {
+        final brandName = brand['name'];
+        await _fetchRecentPosts(brandName); // async로 비동기적으로 호출
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = '데이터를 불러오는 중 문제가 발생했습니다: $e';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  // 특정 브랜드의 최근 게시물 가져오기
+  Future<void> _fetchRecentPosts(String brandName) async {
+    try {
+      final posts = await _apiService.fetchRecentPosts(brandName);
+      setState(() {
+        _brandPosts[brandName] = posts;
+      });
+    } catch (e) {
+      print('Error fetching posts for $brandName: $e');
+    }
   }
 
   @override
@@ -167,32 +100,68 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  String _getThumbnailUrl(String brandName) {
+    final posts = _brandPosts[brandName] ?? [];
+    if (posts.isEmpty) return '';
+
+    // SETTING_SCHEDULE 타입의 이미지를 먼저 찾음
+    final schedulePost = posts.firstWhere(
+          (post) => post.postType == 'SETTING_SCHEDULE',
+      orElse: () => posts.first, // 없으면 가장 최근 게시물
+    );
+
+    return schedulePost.imageUrl;
+  }
+
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
     }
 
     if (_errorMessage.isNotEmpty) {
-      return Center(child: Text(_errorMessage));
+      return Center(
+        child: Text(
+          _errorMessage,
+          style: const TextStyle(color: Colors.red),
+          textAlign: TextAlign.center,
+        ),
+      );
     }
 
-    return ListView.builder(
-      itemCount: _data.length,
-      itemBuilder: _buildListItem,
-    );
-  }
+    if (_brands.isEmpty) {
+      return const Center(
+        child: Text('브랜드 데이터가 없습니다.'),
+      );
+    }
 
-  Widget _buildListItem(BuildContext context, int index) {
-    final item = _data[index];
-    final brandName = item['name'];
-    final posts = _brandPosts[brandName] ?? [];
-    final lastUpdated = item['last_updated'] ?? '';
+    return GridView.builder(
+      padding: const EdgeInsets.all(16),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 1,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+      ),
+      itemCount: _brands.length,
+      itemBuilder: (context, index) {
+        final item = _brands[index];
+        final brandName = item['name'];
+        final brandNameKr = item['name_kr'];
+        final posts = _brandPosts[brandName] ?? [];
+        final lastUpdated = item['last_updated'] ?? '';
+        final thumbnailUrl = _getThumbnailUrl(brandName);
 
-    return BrandListItem(
-      brandName: brandName,
-      posts: posts,
-      lastUpdated: lastUpdated,
-      isDarkTheme: widget.isDarkTheme,
+        return BrandGridItem(
+          brandName: brandName,
+          brandNameKr: brandNameKr,
+          posts: posts,
+          lastUpdated: lastUpdated,
+          thumbnailUrl: thumbnailUrl,
+          isDarkTheme: widget.isDarkTheme,
+        );
+      },
     );
   }
 }

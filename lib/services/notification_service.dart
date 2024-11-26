@@ -19,9 +19,9 @@ class NotificationService {
   static Future<void> showNotification(RemoteMessage message) async {
     final notificationId = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     const androidDetails = AndroidNotificationDetails(
-      NOTIFICATION_CHANNEL_ID,
-      NOTIFICATION_CHANNEL_NAME,
-      channelDescription: NOTIFICATION_CHANNEL_DESC,
+      AppConstants.notificationChannelId,
+      AppConstants.notificationChannelName,
+      channelDescription: AppConstants.notificationChannelDesc,
       importance: Importance.max,
       priority: Priority.high,
       showWhen: true,

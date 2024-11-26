@@ -4,9 +4,12 @@ import 'package:flutter/material.dart';
 import 'services/firebase_service.dart';
 import 'theme/app_theme.dart';
 import 'screens/home/home_screen.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env"); // .env 파일 로드
   try {
     await FirebaseService().initialize();
     print("FirebaseService 초기화 완료");
