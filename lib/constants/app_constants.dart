@@ -5,7 +5,9 @@ class AppConstants {
   static String get baseUrl => dotenv.env['BASE_URL'] ?? '';
 
   // 기타 상수 (직접 정의)
-  static const int days = 7;
+  static const int days = 31;
+
+  static const String staticImage = 'https://catdevdog.i234.me:12222';
 
   // Notification 설정
   static const String notificationChannelId = 'high_importance_channel';

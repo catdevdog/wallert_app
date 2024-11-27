@@ -1,5 +1,7 @@
 // lib/models/brand_post.dart
 
+import 'package:wallert_app/constants/app_constants.dart';
+
 class BrandPost {
   final String postType;
   final String imageUrl;
@@ -19,7 +21,7 @@ class BrandPost {
 
     // 이미지 URL 구성
     final String constructedImageUrl =
-        'https://catdevdog.i234.me:12222/$brandName/$postType/${brandName}_$id\_$imageHash.jpg';
+        '${AppConstants.staticImage}/$brandName/$postType/${brandName}_$id\_$imageHash.jpg';
 
     return BrandPost(
       postType: postType,

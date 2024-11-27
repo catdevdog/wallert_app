@@ -129,6 +129,12 @@ class _HomeScreenState extends State<HomeScreen> {
     return schedulePost.imageUrl;
   }
 
+  String _getProfileUrl(String brandName, String imageName) {
+    if (imageName == '') return '';
+
+    return '${AppConstants.staticImage}/$brandName/$imageName.jpg';
+  }
+
   Widget _buildBody() {
     if (_isLoading) {
       return const Center(
@@ -168,6 +174,7 @@ class _HomeScreenState extends State<HomeScreen> {
         final posts = _brandPosts[brandName] ?? [];
         final lastUpdated = item['last_updated'] ?? '';
         final thumbnailUrl = _getThumbnailUrl(brandName);
+        final profileUrl = _getProfileUrl(item['name'], item['profile_image'] ?? '');
 
         return BrandGridItem(
           brandName: brandName,
@@ -175,7 +182,9 @@ class _HomeScreenState extends State<HomeScreen> {
           posts: posts,
           lastUpdated: lastUpdated,
           thumbnailUrl: thumbnailUrl,
+          profileUrl: profileUrl,
           isDarkTheme: widget.isDarkTheme,
+          grid: _crossAxisCount
         );
       },
     );

@@ -25,8 +25,8 @@ class ApiService {
   }
 
   // 특정 브랜드의 최근 게시물 가져오기
-  Future<List<BrandPost>> fetchRecentPosts(String brandName, {int days = 7}) async {
-    final String url = '${AppConstants.baseUrl}/brands/$brandName/recent-posts?days=$days';
+  Future<List<BrandPost>> fetchRecentPosts(String brandName) async {
+    final String url = '${AppConstants.baseUrl}/brands/$brandName/recent-posts?days=${AppConstants.days}';
 
     try {
       final response = await http.get(Uri.parse(url)); // 쿼리 파라미터로 days 전달
