@@ -112,8 +112,8 @@ class BrandGridItem extends StatelessWidget {
                 child: profileUrl.isNotEmpty
                     ? Image.network(
                   profileUrl,
-                  width: grid == 2 ? 80 : 45,
-                  height: grid == 2 ? 80 : 45,
+                  width: grid == 2 ? 80 : 50,
+                  height: grid == 2 ? 80 : 50,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) {
                     return Icon(

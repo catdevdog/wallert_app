@@ -1,9 +1,17 @@
+// home_screen.dart
+
 import 'package:flutter/material.dart';
 import '../../constants/app_constants.dart';
 import '../../models/brand_post.dart';
 import 'widgets/brand_list_item.dart';
-import 'widgets/image_slider_dialog.dart'; // 추가적으로 필요한 위젯 임포트
-import '../../services/api_service.dart'; // ApiService 임포트
+import 'widgets/image_slider_dialog.dart';
+import '../../services/api_service.dart';
+
+enum ViewMode {
+  grid2x2,
+  grid3x3,
+  list
+}
 
 class HomeScreen extends StatefulWidget {
   final VoidCallback toggleTheme;
@@ -23,12 +31,41 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final ApiService _apiService = ApiService(); // ApiService 인스턴스 생성
+  final ApiService _apiService = ApiService();
   List<dynamic> _brands = [];
   Map<String, List<BrandPost>> _brandPosts = {};
-  bool _isLoading = true; // 로딩 상태 관리
-  String _errorMessage = ''; // 에러 메시지 관리
-  int _crossAxisCount = 3; // GridView의 열 개수 변수
+  bool _isLoading = true;
+  String _errorMessage = '';
+  ViewMode _currentViewMode = ViewMode.grid3x3;
+
+  // ViewMode 순환을 위한 메소드
+  void _toggleViewMode() {
+    setState(() {
+      switch (_currentViewMode) {
+        case ViewMode.grid3x3:
+          _currentViewMode = ViewMode.grid2x2;
+          break;
+        case ViewMode.grid2x2:
+          _currentViewMode = ViewMode.list;
+          break;
+        case ViewMode.list:
+          _currentViewMode = ViewMode.grid3x3;
+          break;
+      }
+    });
+  }
+
+  // ViewMode에 따른 아이콘 반환
+  IconData _getViewModeIcon() {
+    switch (_currentViewMode) {
+      case ViewMode.grid3x3:
+        return Icons.grid_on;
+      case ViewMode.grid2x2:
+        return Icons.grid_view;
+      case ViewMode.list:
+        return Icons.list;
+    }
+  }
 
   @override
   void initState() {
@@ -36,7 +73,6 @@ class _HomeScreenState extends State<HomeScreen> {
     _fetchData();
   }
 
-  // 데이터를 가져오는 메서드
   Future<void> _fetchData() async {
     setState(() {
       _isLoading = true;
@@ -44,16 +80,14 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     try {
-      // 브랜드 목록 가져오기
       final brands = await _apiService.fetchBrands();
       setState(() {
         _brands = brands;
       });
 
-      // 각 브랜드의 최근 게시물 가져오기
       for (var brand in brands) {
         final brandName = brand['name'];
-        await _fetchRecentPosts(brandName); // async로 비동기적으로 호출
+        await _fetchRecentPosts(brandName);
       }
     } catch (e) {
       setState(() {
@@ -66,7 +100,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // 특정 브랜드의 최근 게시물 가져오기
   Future<void> _fetchRecentPosts(String brandName) async {
     try {
       final posts = await _apiService.fetchRecentPosts(brandName);
@@ -78,19 +111,21 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // GridView의 열 개수를 변경하는 함수
-  void _toggleGrid() {
-    setState(() {
-      _crossAxisCount = _crossAxisCount == 3 ? 2 : 3; // 3 -> 2, 2 -> 3으로 토글
-    });
+  String _getThumbnailUrl(String brandName) {
+    final posts = _brandPosts[brandName] ?? [];
+    if (posts.isEmpty) return '';
+
+    final schedulePost = posts.firstWhere(
+          (post) => post.postType == 'SETTING_SCHEDULE',
+      orElse: () => posts.first,
+    );
+
+    return schedulePost.imageUrl;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: _buildAppBar(),
-      body: _buildBody(),
-    );
+  String _getProfileUrl(String brandName, String imageName) {
+    if (imageName == '') return '';
+    return '${AppConstants.staticImage}/$brandName/$imageName.jpg';
   }
 
   PreferredSizeWidget _buildAppBar() {
@@ -102,8 +137,9 @@ class _HomeScreenState extends State<HomeScreen> {
           Row(
             children: [
               IconButton(
-                icon: Icon(_crossAxisCount == 3 ? Icons.grid_3x3 : Icons.grid_4x4), // 그리드 아이콘
-                onPressed: _toggleGrid, // 그리드 열 변경 함수 호출
+                icon: Icon(_getViewModeIcon()),
+                onPressed: _toggleViewMode,
+                tooltip: '보기 방식 변경',
               ),
               IconButton(
                 icon: Icon(widget.isDarkTheme ? Icons.wb_sunny : Icons.nights_stay),
@@ -116,23 +152,112 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  String _getThumbnailUrl(String brandName) {
-    final posts = _brandPosts[brandName] ?? [];
-    if (posts.isEmpty) return '';
+  Widget _buildBrandList() {
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      itemCount: _brands.length,
+      itemBuilder: (context, index) {
+        final item = _brands[index];
+        final brandName = item['name'];
+        final brandNameKr = item['name_kr'];
+        final posts = _brandPosts[brandName] ?? [];
+        final profileUrl = _getProfileUrl(item['name'], item['profile_image'] ?? '');
 
-    // SETTING_SCHEDULE 타입의 이미지를 먼저 찾음
-    final schedulePost = posts.firstWhere(
-          (post) => post.postType == 'SETTING_SCHEDULE',
-      orElse: () => posts.first, // 없으면 가장 최근 게시물
+        return InkWell(
+          onTap: () => showDialog(
+            context: context,
+            builder: (context) => ImageSliderDialog(
+              posts: posts,
+              isDarkTheme: widget.isDarkTheme,
+            ),
+          ),
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(30),
+                  child: Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: profileUrl.isNotEmpty
+                        ? Image.network(
+                      profileUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Icon(
+                          Icons.person_outline,
+                          color: Colors.grey[400],
+                          size: 24,
+                        );
+                      },
+                    )
+                        : Icon(
+                      Icons.person_outline,
+                      color: Colors.grey[400],
+                      size: 24,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    brandNameKr,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right,
+                  color: Colors.grey[400],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
-
-    return schedulePost.imageUrl;
   }
 
-  String _getProfileUrl(String brandName, String imageName) {
-    if (imageName == '') return '';
 
-    return '${AppConstants.staticImage}/$brandName/$imageName.jpg';
+  Widget _buildGrid() {
+    return GridView.builder(
+      padding: const EdgeInsets.all(16),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: _currentViewMode == ViewMode.grid2x2 ? 2 : 3,
+        childAspectRatio: 1,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+      ),
+      itemCount: _brands.length,
+      itemBuilder: (context, index) {
+        final item = _brands[index];
+        final brandName = item['name'];
+        final brandNameKr = item['name_kr'];
+        final posts = _brandPosts[brandName] ?? [];
+        final lastUpdated = item['last_updated'] ?? '';
+        final thumbnailUrl = _getThumbnailUrl(brandName);
+        final profileUrl = _getProfileUrl(item['name'], item['profile_image'] ?? '');
+
+        return BrandGridItem(
+          brandName: brandName,
+          brandNameKr: brandNameKr,
+          posts: posts,
+          lastUpdated: lastUpdated,
+          thumbnailUrl: thumbnailUrl,
+          profileUrl: profileUrl,
+          isDarkTheme: widget.isDarkTheme,
+          grid: _currentViewMode == ViewMode.grid2x2 ? 2 : 3,
+        );
+      },
+    );
   }
 
   Widget _buildBody() {
@@ -158,35 +283,14 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: _crossAxisCount, // 열 개수를 동적으로 설정
-        childAspectRatio: 1,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-      ),
-      itemCount: _brands.length,
-      itemBuilder: (context, index) {
-        final item = _brands[index];
-        final brandName = item['name'];
-        final brandNameKr = item['name_kr'];
-        final posts = _brandPosts[brandName] ?? [];
-        final lastUpdated = item['last_updated'] ?? '';
-        final thumbnailUrl = _getThumbnailUrl(brandName);
-        final profileUrl = _getProfileUrl(item['name'], item['profile_image'] ?? '');
+    return _currentViewMode == ViewMode.list ? _buildBrandList() : _buildGrid();
+  }
 
-        return BrandGridItem(
-          brandName: brandName,
-          brandNameKr: brandNameKr,
-          posts: posts,
-          lastUpdated: lastUpdated,
-          thumbnailUrl: thumbnailUrl,
-          profileUrl: profileUrl,
-          isDarkTheme: widget.isDarkTheme,
-          grid: _crossAxisCount
-        );
-      },
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: _buildAppBar(),
+      body: _buildBody(),
     );
   }
 }
