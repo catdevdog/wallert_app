@@ -38,6 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoading = true;
   String _errorMessage = '';
   ViewMode _currentViewMode = ViewMode.grid3x3;
+  String sortType = '';
 
   // ViewMode 순환을 위한 메소드
   void _toggleViewMode() {
@@ -298,11 +299,72 @@ class _HomeScreenState extends State<HomeScreen> {
     return _currentViewMode == ViewMode.list ? _buildBrandList() : _buildGrid();
   }
 
+  // 최신순 정렬 함수
+  void _sortByLatest() {
+    setState(() {
+      _brands.sort((a, b) {
+        // `last_updated` 값을 DateTime으로 변환하여 비교
+        DateTime dateA = DateTime.parse(a['last_updated']);
+        DateTime dateB = DateTime.parse(b['last_updated']);
+        return dateB.compareTo(dateA); // 최신순: B -> A
+      });
+    });
+    sortType = 'latest';
+  }
+
+  // 이름순 정렬 함수
+  void _sortByName() {
+    setState(() {
+      _brands.sort((a, b) {
+        return a['name_kr'].compareTo(b['name_kr']); // 이름순 정렬
+      });
+    });
+    sortType = 'name';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: _buildAppBar(),
-      body: _buildBody(),
+      body: Column(
+        children: [
+          // 상단에 정렬 버튼 추가
+          Padding(
+            padding: const EdgeInsets.all(0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start, // 좌측 정렬
+              children: [
+                TextButton(
+                  onPressed: _sortByLatest, // 최신순 정렬 함수 호출
+                  child: Text(
+                    '업데이트순',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: sortType == 'latest' ? Colors.white : Colors.grey, // 버튼 텍스트 색상
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: _sortByName, // 이름순 정렬 함수 호출
+                  child: Text(
+                    '이름순',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: sortType == 'name' ? Colors.white : Colors.grey, // 버튼 텍스트 색상
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // 스크롤 가능한 위젯을 넣기 위해 Expanded 사용
+          Expanded(
+            child: _buildBody(), // 기존 body
+          ),
+        ],
+      ),
     );
   }
 }
