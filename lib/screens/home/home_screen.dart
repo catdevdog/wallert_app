@@ -6,6 +6,7 @@ import '../../models/brand_post.dart';
 import 'widgets/brand_list_item.dart';
 import 'widgets/image_slider_dialog.dart';
 import '../../services/api_service.dart';
+import 'package:intl/intl.dart';
 
 enum ViewMode {
   grid2x2,
@@ -127,28 +128,39 @@ class _HomeScreenState extends State<HomeScreen> {
     if (imageName == '') return '';
     return '${AppConstants.staticImage}/$brandName/$imageName.jpg';
   }
+// 날짜 포맷 함수
+  String _getCurrentDate() {
+    final now = DateTime.now();
+    return DateFormat('MM월 dd일').format(now); // 날짜를 "MM월 dd일" 형식으로 변환
+  }
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       title: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(widget.title),
-          Row(
-            children: [
-              IconButton(
-                icon: Icon(_getViewModeIcon()),
-                onPressed: _toggleViewMode,
-                tooltip: '보기 방식 변경',
-              ),
-              IconButton(
-                icon: Icon(widget.isDarkTheme ? Icons.wb_sunny : Icons.nights_stay),
-                onPressed: widget.toggleTheme,
-              ),
-            ],
+          const SizedBox(width: 8),
+          Text(
+            _getCurrentDate(), // 날짜 표시
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[300],
+            ),
           ),
         ],
       ),
+      actions: [
+        IconButton(
+          icon: Icon(_getViewModeIcon()),
+          onPressed: _toggleViewMode,
+          tooltip: '보기 방식 변경',
+        ),
+        IconButton(
+          icon: Icon(widget.isDarkTheme ? Icons.wb_sunny : Icons.nights_stay),
+          onPressed: widget.toggleTheme,
+        ),
+      ],
     );
   }
 
