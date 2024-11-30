@@ -3,10 +3,11 @@
 import 'package:flutter/material.dart';
 import '../../constants/app_constants.dart';
 import '../../models/brand_post.dart';
-import 'widgets/brand_list_item.dart';
+import 'widgets/brand_grid_item.dart';
 import 'widgets/image_slider_dialog.dart';
 import '../../services/api_service.dart';
 import 'package:intl/intl.dart';
+import 'widgets/new_badge.dart';
 
 /// 화면 표시 모드를 정의하는 열거형
 /// - grid2x2: 2x2 그리드 형태
@@ -51,6 +52,19 @@ class _HomeScreenState extends State<HomeScreen> {
     _fetchData();
   }
 
+  bool _isRecentlyUpdated(lastUpdated) {
+    if (lastUpdated.isEmpty) return false;
+
+    try {
+      final lastUpdateDate = DateTime.parse(lastUpdated);
+      final now = DateTime.now();
+      final difference = now.difference(lastUpdateDate);
+
+      return difference.inDays <= 0;
+    } catch (e) {
+      return false;
+    }
+  }
   /// ViewMode를 순환하는 메소드
   /// grid3x3 -> grid2x2 -> list -> grid3x3 순으로 변경
   void _toggleViewMode() {
@@ -179,6 +193,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   /// 브랜드 리스트 뷰를 구성하는 메소드
+  /// 브랜드 리스트 뷰를 구성하는 메소드
   Widget _buildBrandList() {
     return ListView.builder(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
@@ -188,7 +203,9 @@ class _HomeScreenState extends State<HomeScreen> {
         final brandName = item['name'];
         final brandNameKr = item['name_kr'];
         final posts = _brandPosts[brandName] ?? [];
+        final lastUpdated = item['last_updated'] ?? '';
         final profileUrl = _getProfileUrl(brandName, item['profile_image'] ?? '');
+        final isRecent = _isRecentlyUpdated(lastUpdated);
 
         return InkWell(
           onTap: () => showDialog(
@@ -206,12 +223,20 @@ class _HomeScreenState extends State<HomeScreen> {
                 _buildProfileImage(profileUrl),
                 const SizedBox(width: 16),
                 Expanded(
-                  child: Text(
-                    brandNameKr,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  child: Row(
+                    children: [
+                      Text(
+                        brandNameKr,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      if (isRecent) ...[
+                        const SizedBox(width: 8),
+                        const NewBadge(size: 10),
+                      ],
+                    ],
                   ),
                 ),
                 Icon(

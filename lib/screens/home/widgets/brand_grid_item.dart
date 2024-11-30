@@ -3,6 +3,7 @@ import 'dart:ui'; // ImageFilter를 사용하기 위해 필요
 import '../../../models/brand_post.dart';
 import 'package:intl/intl.dart';
 import 'image_slider_dialog.dart';
+import 'new_badge.dart';
 
 class BrandGridItem extends StatelessWidget {
   final String brandName;
@@ -55,42 +56,6 @@ class BrandGridItem extends StatelessWidget {
     } catch (e) {
       return false;
     }
-  }
-  /// NEW 배지 위젯
-  Widget _buildNewBadge() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Icon(
-          //   Icons.update,
-          //   size: grid == 2 ? 16 : 12,
-          //   color: Colors.blue[600],
-          // ),
-          // const SizedBox(width: 2),
-          Text(
-            'NEW',
-            style: TextStyle(
-              fontSize: grid == 2 ? 12 : 10,
-              fontWeight: FontWeight.bold,
-              color: Colors.blue[600],
-            ),
-          ),
-        ],
-      ),
-    );
   }
   @override
   Widget build(BuildContext context) {
@@ -200,7 +165,7 @@ class BrandGridItem extends StatelessWidget {
             Positioned(
               top: 8,
               right: 8,
-              child: _buildNewBadge(),
+              child: NewBadge(size: grid == 2 ? 12 : 10),
             ),
         ],
       ),
