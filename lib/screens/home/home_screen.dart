@@ -8,6 +8,7 @@ import 'widgets/image_slider_dialog.dart';
 import '../../services/api_service.dart';
 import 'package:intl/intl.dart';
 import 'widgets/new_badge.dart';
+import '../../services/notification_service.dart';
 
 /// 화면 표시 모드를 정의하는 열거형
 /// - grid2x2: 2x2 그리드 형태
@@ -37,19 +38,40 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final ApiService _apiService = ApiService();
+  final NotificationService _notificationService = NotificationService();
 
   // 상태 변수들
   List<dynamic> _brands = [];
   Map<String, List<BrandPost>> _brandPosts = {};
   bool _isLoading = true;
   String _errorMessage = '';
-  ViewMode _currentViewMode = ViewMode.grid3x3;
+  ViewMode _currentViewMode = ViewMode.list;
   String _sortType = '';  // 정렬 방식을 저장하는 변수
+  Set<String> _subscribedGyms = {}; // 구독한 암장 목록
+
+  Future<void> _toggleSubscription(String gymName) async {
+    final topic = gymName.replaceAll(' ', '_').toLowerCase(); // 토픽 이름 변환
+    if (_subscribedGyms.contains(topic)) {
+      await _notificationService.unsubscribeFromTopic(topic);
+      setState(() => _subscribedGyms.remove(topic));
+    } else {
+      await _notificationService.subscribeToTopic(topic);
+      setState(() => _subscribedGyms.add(topic));
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     _fetchData();
+    _loadSubscribedTopics(); // 저장된 구독 정보를 불러옴
+  }
+
+  Future<void> _loadSubscribedTopics() async {
+    final subscribedTopics = await _notificationService.loadSubscribedTopics();
+    setState(() {
+      _subscribedGyms = subscribedTopics;
+    });
   }
 
   bool _isRecentlyUpdated(lastUpdated) {
@@ -179,11 +201,11 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       actions: [
-        IconButton(
-          icon: Icon(_getViewModeIcon()),
-          onPressed: _toggleViewMode,
-          tooltip: '보기 방식 변경',
-        ),
+        // IconButton(
+        //   icon: Icon(_getViewModeIcon()),
+        //   onPressed: _toggleViewMode,
+        //   tooltip: '보기 방식 변경',
+        // ),
         IconButton(
           icon: Icon(widget.isDarkTheme ? Icons.wb_sunny : Icons.nights_stay),
           onPressed: widget.toggleTheme,
@@ -192,7 +214,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// 브랜드 리스트 뷰를 구성하는 메소드
   /// 브랜드 리스트 뷰를 구성하는 메소드
   Widget _buildBrandList() {
     return ListView.builder(
@@ -206,6 +227,8 @@ class _HomeScreenState extends State<HomeScreen> {
         final lastUpdated = item['last_updated'] ?? '';
         final profileUrl = _getProfileUrl(brandName, item['profile_image'] ?? '');
         final isRecent = _isRecentlyUpdated(lastUpdated);
+        final topic = brandName.replaceAll(' ', '_').toLowerCase();
+        final isSubscribed = _subscribedGyms.contains(topic);
 
         return InkWell(
           onTap: () => showDialog(
@@ -239,10 +262,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                 ),
-                Icon(
-                  Icons.chevron_right,
-                  color: Colors.grey[400],
+                Switch(
+                  value: _subscribedGyms.contains(topic),
+                  onChanged: (value) => _toggleSubscription(brandName),
                 ),
+                // Icon(
+                //   Icons.chevron_right,
+                //   color: Colors.grey[400],
+                // ),
               ],
             ),
           ),
