@@ -13,4 +13,6 @@ class AppConstants {
   static const String notificationChannelId = 'high_importance_channel';
   static const String notificationChannelName = 'High Importance Notifications';
   static const String notificationChannelDesc = 'This channel is used for important notifications.';
+
+  static String get webViewUrl => dotenv.env['WEB_VIEW_URL'] ?? 'https://default-url.com';
 }
