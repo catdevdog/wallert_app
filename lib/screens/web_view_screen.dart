@@ -48,7 +48,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('웹뷰 보기'),
+        title: const Text('일정'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),

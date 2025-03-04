@@ -221,9 +221,9 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.web),
+          icon: const Icon(Icons.calendar_month),
           onPressed: _navigateToWebView,
-          tooltip: '웹뷰 보기',
+          tooltip: '일정',
         ),
         IconButton(
           icon: Icon(widget.isDarkTheme ? Icons.wb_sunny : Icons.nights_stay),
