@@ -2,7 +2,7 @@ name: wallert_app
 description: "A new Flutter project."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.1.1
+version: 1.0.0+1
 
 environment:
   sdk: ^3.5.4
@@ -24,6 +24,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: "^0.13.1" # 최신 버전 확인 후 사용
 
   flutter_lints: ^4.0.0
 
@@ -33,3 +34,9 @@ flutter:
 
   uses-material-design: true
 
+flutter_launcher_icons:
+  android: true # Android 아이콘 생성 활성화
+  ios: true     # iOS 아이콘 생성 활성화
+  image_path: "icon.png" # 사용할 아이콘 이미지 경로 (예시)
+  # adaptive_icon_background: "#ffffff" # Android Adaptive Icon 배경색 (선택 사항)
+  # adaptive_icon_foreground: "assets/icon/app_icon_foreground.png" # Android Adaptive Icon 전경 이미지 (선택 사항)
