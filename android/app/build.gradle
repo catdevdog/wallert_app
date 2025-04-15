@@ -17,7 +17,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.example.wallert_app"
+    namespace = "com.kxx.wallert_app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -31,7 +31,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.wallert_app"
+        applicationId = "com.kxx.wallert_app"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

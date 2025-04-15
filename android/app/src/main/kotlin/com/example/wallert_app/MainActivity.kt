@@ -1,4 +1,4 @@
-package com.example.wallert_app
+package com.kxx.wallert_app
 
 import android.app.NotificationChannel
 import android.app.NotificationManager

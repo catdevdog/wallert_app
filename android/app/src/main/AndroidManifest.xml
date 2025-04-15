@@ -3,7 +3,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
-        android:label="wallert_app"
+        android:label="월럿"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true"
