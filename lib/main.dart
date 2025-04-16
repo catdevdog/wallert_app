@@ -1,11 +1,9 @@
-// lib/main.dart
-
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart'; // 추가
 import 'services/firebase_service.dart';
 import 'theme/app_theme.dart';
 import 'screens/home/home_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,6 +35,16 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       title: 'Wallert',
       theme: buildAppTheme(isDark: isDarkTheme),
+      // 로케일 관련 설정 추가
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('ko', 'KR'), // 한국어
+        Locale('en', 'US'), // 영어
+      ],
       home: HomeScreen(
         title: 'Wallert',
         toggleTheme: _toggleTheme,

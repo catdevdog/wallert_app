@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'widgets/new_badge.dart';
 import '../../services/notification_service.dart';
 import '../web_view_screen.dart';
+import '../calendar/calendar_screen.dart';
 
 // enum ViewMode { grid2x2, grid3x3, list } // --- ViewMode Enum 제거 ---
 
@@ -152,7 +153,7 @@ class HomeScreenState extends State<HomeScreen> {
   }
   // *** END: Updated Info Dialog Method ***
 
-  // UI Building & Layout
+// 아래는 _buildAppBar 메서드의 전체 수정된 코드입니다:
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       title: Row(
@@ -170,12 +171,16 @@ class HomeScreenState extends State<HomeScreen> {
         ],
       ),
       actions: [
-        // 전체 일정 기능 보류
-        // IconButton(
-        //   icon: const Icon(Icons.calendar_month),
-        //   onPressed: _navigateToWebView,
-        //   tooltip: '전체 일정 보기',
-        // ),
+        IconButton(
+          icon: const Icon(Icons.calendar_month),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const CalendarScreen()),
+            );
+          },
+          tooltip: '세팅 일정 캘린더',
+        ),
         IconButton(
           icon: Icon(widget.isDarkTheme ? Icons.wb_sunny : Icons.nights_stay),
           onPressed: widget.toggleTheme,
