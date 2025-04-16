@@ -52,7 +52,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyBZ7GIDGasoSsO4GGtVXem2pAYVTBftUSc',
-    appId: '1:155428993295:android:9f7434caa375869614267a',
+    appId: '1:155428993295:android:c60b30992138a2a214267a',
     messagingSenderId: '155428993295',
     projectId: 'wallert-app',
     storageBucket: 'wallert-app.firebasestorage.app',
